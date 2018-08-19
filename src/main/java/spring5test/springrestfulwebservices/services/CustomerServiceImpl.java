@@ -1,8 +1,10 @@
 package spring5test.springrestfulwebservices.services;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import spring5test.springrestfulwebservices.api.v1.mapper.CustomerMapper;
 import spring5test.springrestfulwebservices.api.v1.model.CustomerDTO;
+import spring5test.springrestfulwebservices.domain.Customer;
 import spring5test.springrestfulwebservices.repositories.CustomerRepository;
 
 import java.util.List;
@@ -17,8 +19,13 @@ public class CustomerServiceImpl implements CustomerService {
     private CustomerRepository customerRepository;
     private CustomerMapper customerMapper;
 
-    public CustomerServiceImpl(CustomerRepository customerRepository, CustomerMapper customerMapper) {
+    @Autowired
+    public void setCustomerRepository(CustomerRepository customerRepository) {
         this.customerRepository = customerRepository;
+    }
+
+    @Autowired
+    public void setCustomerMapper(CustomerMapper customerMapper) {
         this.customerMapper = customerMapper;
     }
 
@@ -41,4 +48,17 @@ public class CustomerServiceImpl implements CustomerService {
                 .map(customerMapper::customerToCustomerDTO)
                 .orElseThrow(RuntimeException::new); //todo implement better exception handling
     }
+
+    @Override
+    public CustomerDTO createNewCustomer(CustomerDTO customerDTO) {
+
+        Customer customer = customerMapper.customerDtoToCustomer(customerDTO);
+
+        Customer savedCustomer = customerRepository.save(customer);
+
+        CustomerDTO returnDto = customerMapper.customerToCustomerDTO(savedCustomer);
+
+        returnDto.setCustomerUrl("/api/v1/customer/" + savedCustomer.getId());
+
+        return returnDto;    }
 }
